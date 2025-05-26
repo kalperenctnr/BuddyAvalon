@@ -11,5 +11,7 @@ namespace BuddyAvalon.Services
     {
         public Task<IStorageFile?> OpenFileAsync();
         public Task<IStorageFile?> SaveFileAsync();
+
+        public Task<IStorageFolder?> OpenFolderAsync();
     }
 }

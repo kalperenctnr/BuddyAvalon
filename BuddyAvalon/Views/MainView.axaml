@@ -19,14 +19,14 @@
 			<Grid ShowGridLines="True" Margin="5"
 				  ColumnDefinitions="Auto, Auto"
 				  RowDefinitions="Auto, Auto, Auto">
-				<Button Grid.Row="0" Grid.Column="0" Margin="10" Content="Select Test File"/>
-				<TextBox Grid.Row="0" Grid.Column="1" Margin="0 5" Text="Test File"/>
+				<Button Grid.Row="0" Grid.Column="0" Margin="10" Content="Select Test File" Command="{Binding SelectTestFileCommand}"/>
+				<TextBox Grid.Row="0" Grid.Column="1" Margin="0 5" Text="{Binding TestFile}" />
 
-				<Button Grid.Row="1" Grid.Column="0" Margin="10" Content="Select Result"/>
-				<TextBox Grid.Row="1" Grid.Column="1" Margin="0 5" Text="Result Folder"/>
+				<Button Grid.Row="1" Grid.Column="0" Margin="10" Content="Select Result" Command="{Binding SelectResultFileCommand}"/>
+				<TextBox Grid.Row="1" Grid.Column="1" Margin="0 5" Text="{Binding ResultFolder}"/>
 
 				<Label Grid.Row="2" Grid.Column="0" Margin="10" Content="Result File Name:"/>
-				<TextBox Grid.Row="2" Grid.Column="1" Margin="0 5" Text="Result File"/>
+				<TextBox Grid.Row="2" Grid.Column="1" Margin="0 5" Text="{Binding ResultFileName}"/>
 
 
 			</Grid>
@@ -35,7 +35,7 @@
 		<StackPanel Orientation="Vertical">			
 			<DockPanel LastChildFill="True">
 				<DockPanel DockPanel.Dock="Bottom">
-					<Button DockPanel.Dock="Left" Command="{Binding OpenFileCommand}">Open File</Button>
+					<Button DockPanel.Dock="Left" Command="{Binding ShowTestCommand}">Preview Test</Button>
 
 					<Button DockPanel.Dock="Right" Command="{Binding ChangePageCommand}">Camera Page</Button>
 				</DockPanel>

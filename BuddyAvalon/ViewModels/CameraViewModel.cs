@@ -12,6 +12,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Avalonia.Media.Imaging;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using AForge.Video;
+using System.Drawing.Imaging;
+using System.IO.Pipes;
 
 namespace BuddyAvalon.ViewModels;
 
@@ -25,7 +28,35 @@ public partial class CameraViewModel : ViewModelBase
     public ObservableCollection<string> cameraList = new();
 
     [ObservableProperty]
-    public string? selectedCamera;
+    public bool isCamSelected;
+
+    private string? _selectedCamera;
+    public string? SelectedCamera
+    {
+        get => _selectedCamera;
+        set
+        {
+            if (_selectedCamera != value)
+            {
+                _selectedCamera = value;
+                OnPropertyChanged(nameof(_selectedCamera));
+                OnSelectionChanged(_selectedCamera); // Custom logic
+            }
+        }
+    }
+
+    private void OnSelectionChanged(string? selectedCam)
+    {
+        if (selectedCam is null) IsCamSelected = false;
+        else IsCamSelected = true;
+    }
+
+    public string? TestFile { get; set; }
+    public string? ResultPath { get; set; }
+
+    public string? ResultFileName {  get; set; }    
+
+
 
     [RelayCommand]
     private void LoadCameras()
@@ -58,8 +89,10 @@ public partial class CameraViewModel : ViewModelBase
         await camService.StartCameraAsync(index);
     }
 
+    System.Drawing.Bitmap? saveImg;
     private void OnFrameReceived(System.Drawing.Bitmap bitmap)
     {
+        saveImg = bitmap;
         using var ms = new MemoryStream();
         bitmap.Save(ms, System.Drawing.Imaging.ImageFormat.Bmp);
         ms.Position = 0;
@@ -107,4 +140,105 @@ public partial class CameraViewModel : ViewModelBase
     {
         this.root = root;
     }
+
+    [RelayCommand]
+    private void StartScenerio()
+    {
+        Task.Run(robotMoveTask);
+    }
+
+
+    async Task robotMoveTask()
+    {
+        int totalLine = System.IO.File.ReadAllLines(TestFile).Length;
+
+        int imageIndex;
+        Console.WriteLine("RunFlag");
+        for (imageIndex = 0; imageIndex < totalLine; imageIndex++)
+        {
+            var response = Console.ReadLine();
+            if (response == "MoveOk")
+            {
+                DateTime now = DateTime.Now;
+                string nowStr = now.ToString("yyyy_MM_dd_hh_mm_ss_ff_tt");
+                string imagePath = ResultPath + "\\" + nowStr + ".png";
+                string indexForFile = (imageIndex + 1).ToString();
+                saveImg?.Save(imagePath, ImageFormat.Png);
+                Console.WriteLine("PhotoFlag");
+                Console.WriteLine(indexForFile + ";" + imagePath);
+            }
+            //burdan python a flag gönder bitti diye
+        }
+        await StopCamera();
+        Process cppProcess = new Process();
+        cppProcess.StartInfo.FileName = "LedErrTrial.exe"; // Adjust the path if necessary
+                                                           //cppProcess.StartInfo.FileName = "C:\\Users\\OF_7379\\Desktop\\Led Optimization\\denemeonur7\\Winform_Onur\\Winform_Onur\\bin\\Release\\ProcessCpp.exe"; // Adjust the path if necessary
+        cppProcess.StartInfo.CreateNoWindow = false;
+        cppProcess.StartInfo.UseShellExecute = false;
+        cppProcess.StartInfo.RedirectStandardInput = true;
+        cppProcess.StartInfo.RedirectStandardOutput = true;
+        cppProcess.StartInfo.RedirectStandardError = true;
+
+        Console.WriteLine("Starting CPP Process...");
+        cppProcess.Start();
+
+        // Create a named pipe client
+        using (NamedPipeClientStream pipeClient = new NamedPipeClientStream(".", "MyNamedPipe", PipeDirection.InOut))
+        {
+            Console.WriteLine("Connecting to server...");
+            pipeClient.Connect();
+
+            using (StreamReader reader = new StreamReader(pipeClient))
+            using (StreamWriter writer = new StreamWriter(pipeClient) { AutoFlush = true })
+            {
+                Console.WriteLine("Connected to server.");
+
+                string message = "0";
+
+                //Console.WriteLine("Sending: " + message);
+                int intValue = message.Length;
+                byte[] intBytes = BitConverter.GetBytes(intValue);
+                char[] charBytes = System.Text.Encoding.ASCII.GetString(intBytes).ToCharArray();
+                writer.Write(charBytes, 0, 4);
+                writer.Write(message);
+
+                string path = ResultFileName;
+                intValue = path.Length;
+                intBytes = BitConverter.GetBytes(intValue);
+                charBytes = System.Text.Encoding.ASCII.GetString(intBytes).ToCharArray();
+                writer.Write(charBytes, 0, 4);
+                writer.Write(path);
+
+
+                message = "1";
+                intValue = message.Length;
+                intBytes = BitConverter.GetBytes(intValue);
+                charBytes = System.Text.Encoding.ASCII.GetString(intBytes).ToCharArray();
+                writer.Write(charBytes, 0, 4);
+                writer.Write(message);
+
+                path = "C:\\Users\\OF_7379\\Desktop\\Led Optimization\\denemeonur7\\Winform_Onur\\Winform_Onur\\bin\\Release\\3DModel.csv";
+                intValue = path.Length;
+                intBytes = BitConverter.GetBytes(intValue);
+                charBytes = System.Text.Encoding.ASCII.GetString(intBytes).ToCharArray();
+                writer.Write(charBytes, 0, 4);
+                writer.Write(path);
+
+                message = "2";
+                intValue = message.Length;
+                intBytes = BitConverter.GetBytes(intValue);
+                charBytes = System.Text.Encoding.ASCII.GetString(intBytes).ToCharArray();
+                writer.Write(charBytes, 0, 4);
+                writer.Write(message);
+
+                string response = reader.ReadLine();
+                //Console.WriteLine("Received: " + response);
+            }
+        }
+        cppProcess.WaitForExit();
+    }
+
+
+
+
 }

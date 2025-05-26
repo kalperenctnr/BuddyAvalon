@@ -16,7 +16,7 @@
 		<!-- Top Controls -->
 		<StackPanel Grid.Row="0" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Left" Spacing="10">
 			<Button Command="{Binding LoadCamerasCommand}" Content="Refresh Cameras"/>
-			<ComboBox ItemsSource="{Binding CameraList}" SelectedIndex="{Binding SelectedCamera}" />
+			<ComboBox ItemsSource="{Binding CameraList}" SelectedIndex="{Binding SelectedCamera}" KeyUp="" />
 			<Button Command="{Binding StartCameraCommand}" Content="Start Camera"/>
 			<Button Command="{Binding StopCameraCommand}" Content="Stop Camera"/>
 		</StackPanel>
@@ -31,6 +31,7 @@
                     VerticalAlignment="Bottom"
                     Spacing="10">
 			<Button Command="{Binding BackCommand}" Content="Back" />
+			<Button Command="{Binding StartScenerioCommand}" Content="Run Scenerio" IsEnabled="{Binding IsCamSelected}" />
 			<Button Command="{Binding RunOptimizationCommand}" Content="Run Optimization" />
 		</StackPanel>
 	</Grid>

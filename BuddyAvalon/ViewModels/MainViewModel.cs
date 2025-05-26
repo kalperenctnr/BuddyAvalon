@@ -10,17 +10,29 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
 using Microsoft.Extensions.DependencyInjection;
+using Avalonia.Platform.Storage;
 
 namespace BuddyAvalon.ViewModels;
 
 public partial class MainViewModel : ViewModelBase
 {
 
-  [ObservableProperty] private string? _fileText;
+    [ObservableProperty] 
+    public string? _fileText;
 
+    [ObservableProperty]
+    public string? _testFile;
+
+    [ObservableProperty]
+    public string? _resultFolder;
+
+    [ObservableProperty]
+    public string? _resultFileName;
+
+    
 
     [RelayCommand]
-    private async Task OpenFile(CancellationToken token)
+    private async Task SelectTestFile()
     {
         ErrorMessages?.Clear();
         try
@@ -29,19 +41,63 @@ public partial class MainViewModel : ViewModelBase
             if (filesService is null) throw new NullReferenceException("Missing File Service instance.");
 
             var file = await filesService.OpenFileAsync();
-            if (file is null) return;
+            if (file is null) TestFile = "";
+            else TestFile = file.TryGetLocalPath();
+        }
+        catch (Exception e)
+        {
+            ErrorMessages?.Add(e.Message);
+            TestFile = "";
+        }
+    }
 
-            // Limit the text file to 1MB so that the demo wont lag.
-            if ((await file.GetBasicPropertiesAsync()).Size <= 1024 * 1024 * 1)
+
+    [RelayCommand]
+    private async Task SelectResultFile()
+    {
+        ErrorMessages?.Clear();
+        try
+        {
+            var filesService = App.Current?.Services?.GetService<IFilesService>();
+            if (filesService is null) throw new NullReferenceException("Missing File Service instance.");
+
+            var file = await filesService.OpenFolderAsync();
+            if (file is null) ResultFolder = "";
+            else ResultFolder = file.Path.ToString();
+        }
+        catch (Exception e)
+        {
+            ErrorMessages?.Add(e.Message);
+            ResultFolder = "";
+        }
+    }
+
+
+    [RelayCommand]
+    private async Task ShowTest(CancellationToken token)
+    {
+        ErrorMessages?.Clear();
+        try
+        {
+            // For example, open file stream directly:
+            var path = TestFile;
+
+            using (var stream = File.OpenRead(path))
             {
-                await using var readStream = await file.OpenReadAsync();
-                using var reader = new StreamReader(readStream);
+                using var reader = new StreamReader(stream);
                 FileText = await reader.ReadToEndAsync(token);
             }
-            else
-            {
-                throw new Exception("File exceeded 1MB limit.");
-            }
+
+            //// Limit the text file to 1MB so that the demo wont lag.
+            //if ((await file.GetBasicPropertiesAsync()).Size <= 1024 * 1024 * 1)
+            //{
+            //    await using var readStream = await file.OpenReadAsync();
+                
+            //}
+            //else
+            //{
+            //    throw new Exception("File exceeded 1MB limit.");
+            //}
         }
         catch (Exception e)
         {
@@ -60,7 +116,6 @@ public partial class MainViewModel : ViewModelBase
 
             var file = await filesService.SaveFileAsync();
             if (file is null) return;
-
 
             // Limit the text file to 1MB so that the demo wont lag.
             if (FileText?.Length <= 1024 * 1024 * 1)
@@ -85,6 +140,7 @@ public partial class MainViewModel : ViewModelBase
     private void ChangePage()
     {
         root.PageMove = 1;
+        FileText = "";
     }
 
 
