@@ -1,0 +1,37 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:viewModels="clr-namespace:BuddyAvalon.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:CompileBindings="True"
+             x:Class="BuddyAvalon.Views.CameraView"
+             x:DataType="viewModels:CameraViewModel">
+
+	<Design.DataContext>
+		<viewModels:CameraViewModel />
+	</Design.DataContext>
+
+	<Grid Margin="5" RowDefinitions="Auto, *, Auto" ColumnDefinitions="*,*">
+		<!-- Top Controls -->
+		<StackPanel Grid.Row="0" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Left" Spacing="10">
+			<Button Command="{Binding LoadCamerasCommand}" Content="Refresh Cameras"/>
+			<ComboBox ItemsSource="{Binding CameraList}" SelectedIndex="{Binding SelectedCamera}" />
+			<Button Command="{Binding StartCameraCommand}" Content="Start Camera"/>
+			<Button Command="{Binding StopCameraCommand}" Content="Stop Camera"/>
+		</StackPanel>
+
+		<!-- Image on the Left Half -->
+		<Image Grid.Row="1" Grid.Column="0" Source="{Binding VideoFrame}" Stretch="None" HorizontalAlignment="Left" />
+
+		<!-- Bottom-Right Buttons -->
+		<StackPanel Grid.Row="2" Grid.ColumnSpan="2"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Bottom"
+                    Spacing="10">
+			<Button Command="{Binding BackCommand}" Content="Back" />
+			<Button Command="{Binding RunOptimizationCommand}" Content="Run Optimization" />
+		</StackPanel>
+	</Grid>
+</UserControl>
