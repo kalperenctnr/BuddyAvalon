@@ -19,6 +19,8 @@
 			<ComboBox ItemsSource="{Binding CameraList}" SelectedIndex="{Binding SelectedCamera}" KeyUp="" />
 			<Button Command="{Binding StartCameraCommand}" Content="Start Camera"/>
 			<Button Command="{Binding StopCameraCommand}" Content="Stop Camera"/>
+			<Button Command="{Binding SelectModelFileCommand}" Content="Select Model"/>
+			<TextBox  Margin="0 5" Text="{Binding ModelFile}" />
 		</StackPanel>
 
 		<!-- Image on the Left Half -->

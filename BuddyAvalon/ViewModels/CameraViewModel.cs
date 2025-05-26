@@ -15,6 +15,7 @@ using System.Diagnostics;
 using AForge.Video;
 using System.Drawing.Imaging;
 using System.IO.Pipes;
+using Avalonia.Platform.Storage;
 
 namespace BuddyAvalon.ViewModels;
 
@@ -200,7 +201,7 @@ public partial class CameraViewModel : ViewModelBase
     void OptimizationTask()
     {
         Process cppProcess = new Process();
-        cppProcess.StartInfo.FileName = "LedErrTrial.exe"; // Adjust the path if necessary
+        cppProcess.StartInfo.FileName = "OptimizeLedModel.exe"; // Adjust the path if necessary
                                                            //cppProcess.StartInfo.FileName = "C:\\Users\\OF_7379\\Desktop\\Led Optimization\\denemeonur7\\Winform_Onur\\Winform_Onur\\bin\\Release\\ProcessCpp.exe"; // Adjust the path if necessary
         cppProcess.StartInfo.CreateNoWindow = false;
         cppProcess.StartInfo.UseShellExecute = false;
@@ -231,7 +232,7 @@ public partial class CameraViewModel : ViewModelBase
                 writer.Write(charBytes, 0, 4);
                 writer.Write(message);
 
-                string path = ResultFileName;
+                string path = ResultPath;
                 intValue = path.Length;
                 intBytes = BitConverter.GetBytes(intValue);
                 charBytes = System.Text.Encoding.ASCII.GetString(intBytes).ToCharArray();
@@ -246,7 +247,7 @@ public partial class CameraViewModel : ViewModelBase
                 writer.Write(charBytes, 0, 4);
                 writer.Write(message);
 
-                path = "C:\\Users\\OF_7379\\Desktop\\Led Optimization\\denemeonur7\\Winform_Onur\\Winform_Onur\\bin\\Release\\3DModel.csv";
+                path = ModelFile;
                 intValue = path.Length;
                 intBytes = BitConverter.GetBytes(intValue);
                 charBytes = System.Text.Encoding.ASCII.GetString(intBytes).ToCharArray();
@@ -267,7 +268,28 @@ public partial class CameraViewModel : ViewModelBase
         cppProcess.WaitForExit();
     }
 
+    [ObservableProperty]
+    private string? _modelFile;
 
+    [RelayCommand]
+    private async Task SelectModelFile()
+    {
+        ErrorMessages?.Clear();
+        try
+        {
+            var filesService = App.Current?.Services?.GetService<IFilesService>();
+            if (filesService is null) throw new NullReferenceException("Missing File Service instance.");
+
+            var file = await filesService.OpenFileAsync();
+            if (file is null) ModelFile = "";
+            else ModelFile = file.TryGetLocalPath();
+        }
+        catch (Exception e)
+        {
+            ErrorMessages?.Add(e.Message);
+            ModelFile = "";
+        }
+    }
 
 
 }
