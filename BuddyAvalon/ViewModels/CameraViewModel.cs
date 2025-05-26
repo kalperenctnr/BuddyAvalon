@@ -54,9 +54,10 @@ public partial class CameraViewModel : ViewModelBase
     public string? TestFile { get; set; }
     public string? ResultPath { get; set; }
 
-    public string? ResultFileName {  get; set; }    
+    public string? ResultFileName {  get; set; }
 
-
+    [ObservableProperty]
+    private bool isBackEnabled = true;
 
     [RelayCommand]
     private void LoadCameras()
@@ -130,11 +131,6 @@ public partial class CameraViewModel : ViewModelBase
         root.PageMove -= 1;
     }
 
-    [RelayCommand]
-    private void RunOptimization()
-    {
-
-    }
     ViewModelBase? root;
     public void SetRoot(ViewModelBase root)
     {
@@ -142,9 +138,38 @@ public partial class CameraViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private void StartScenerio()
+    private async Task StartScenerio()
     {
-        Task.Run(robotMoveTask);
+        IsBackEnabled = false;
+
+        try
+        {
+            await Task.Run(robotMoveTask);
+            IsBackEnabled = true;
+        }
+        catch (Exception ex)
+        {
+            IsBackEnabled = true;
+        }
+
+    }
+
+
+
+    [RelayCommand]
+    private async Task Optimize()
+    {
+        IsBackEnabled = false;
+        try
+        {
+            await Task.Run(() => OptimizationTask());
+            IsBackEnabled = true;
+        }
+        catch (Exception ex)
+        {
+            IsBackEnabled = true;
+        }
+
     }
 
 
@@ -170,6 +195,10 @@ public partial class CameraViewModel : ViewModelBase
             //burdan python a flag gönder bitti diye
         }
         await StopCamera();
+    }
+
+    void OptimizationTask()
+    {
         Process cppProcess = new Process();
         cppProcess.StartInfo.FileName = "LedErrTrial.exe"; // Adjust the path if necessary
                                                            //cppProcess.StartInfo.FileName = "C:\\Users\\OF_7379\\Desktop\\Led Optimization\\denemeonur7\\Winform_Onur\\Winform_Onur\\bin\\Release\\ProcessCpp.exe"; // Adjust the path if necessary

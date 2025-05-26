@@ -60,6 +60,14 @@ namespace BuddyAvalon.Services
                 catch (Exception ex)
                 {
                     Debug.WriteLine(ex.Message);
+                    if (captureDevices != null)
+                    {
+                        videoSource = new VideoCaptureDevice(captureDevices[index].MonikerString);
+                        videoSource.VideoResolution = videoSource.VideoCapabilities[1];
+                        videoSource.NewFrame += new NewFrameEventHandler(OnNewFrame);
+
+                        videoSource.Start();
+                    }
                 }
             });
         }

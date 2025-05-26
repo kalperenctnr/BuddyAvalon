@@ -63,7 +63,7 @@ public partial class MainViewModel : ViewModelBase
 
             var file = await filesService.OpenFolderAsync();
             if (file is null) ResultFolder = "";
-            else ResultFolder = file.Path.ToString();
+            else ResultFolder = file.TryGetLocalPath();
         }
         catch (Exception e)
         {
