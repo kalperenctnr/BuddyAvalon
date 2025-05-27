@@ -88,16 +88,6 @@ public partial class MainViewModel : ViewModelBase
                 FileText = await reader.ReadToEndAsync(token);
             }
 
-            //// Limit the text file to 1MB so that the demo wont lag.
-            //if ((await file.GetBasicPropertiesAsync()).Size <= 1024 * 1024 * 1)
-            //{
-            //    await using var readStream = await file.OpenReadAsync();
-                
-            //}
-            //else
-            //{
-            //    throw new Exception("File exceeded 1MB limit.");
-            //}
         }
         catch (Exception e)
         {
@@ -149,11 +139,4 @@ public partial class MainViewModel : ViewModelBase
         this.root = root;
     }
 
-    //[RelayCommand]
-    //private void OpenCameraPage()
-    //{
-    //    ErrorMessages?.Clear();
-    //    Debug.WriteLine("Inside cam");
-    //    CurrentView = new CameraViewModel();
-    //}
 }

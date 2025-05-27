@@ -60,6 +60,9 @@ public partial class CameraViewModel : ViewModelBase
     [ObservableProperty]
     private bool isBackEnabled = true;
 
+    [ObservableProperty]
+    private bool isModelEnabled = false;
+
     [RelayCommand]
     private void LoadCameras()
     {
@@ -145,6 +148,7 @@ public partial class CameraViewModel : ViewModelBase
 
         try
         {
+            SendFolderPath();
             await Task.Run(robotMoveTask);
             IsBackEnabled = true;
         }
@@ -173,6 +177,12 @@ public partial class CameraViewModel : ViewModelBase
 
     }
 
+    void SendFolderPath()
+    {
+        Console.WriteLine(TestFile);
+        Console.WriteLine(ResultPath);
+        Console.WriteLine(ResultFileName);
+    }
 
     async Task robotMoveTask()
     {
@@ -187,9 +197,10 @@ public partial class CameraViewModel : ViewModelBase
             {
                 DateTime now = DateTime.Now;
                 string nowStr = now.ToString("yyyy_MM_dd_hh_mm_ss_ff_tt");
-                string imagePath = ResultPath + "\\" + nowStr + ".png";
+                //string imagePath = ResultPath + "\\" + nowStr + ".png";
+                string imagePath =  nowStr + ".png";
                 string indexForFile = (imageIndex + 1).ToString();
-                saveImg?.Save(imagePath, ImageFormat.Png);
+                saveImg?.Save(ResultPath +'/' +imagePath, ImageFormat.Png);
                 Console.WriteLine("PhotoFlag");
                 Console.WriteLine(indexForFile + ";" + imagePath);
             }
@@ -201,8 +212,9 @@ public partial class CameraViewModel : ViewModelBase
     void OptimizationTask()
     {
         Process cppProcess = new Process();
-        cppProcess.StartInfo.FileName = "OptimizeLedModel.exe"; // Adjust the path if necessary
-                                                           //cppProcess.StartInfo.FileName = "C:\\Users\\OF_7379\\Desktop\\Led Optimization\\denemeonur7\\Winform_Onur\\Winform_Onur\\bin\\Release\\ProcessCpp.exe"; // Adjust the path if necessary
+        cppProcess.StartInfo.FileName = Path.Join("Optimization", "OptimizeLedModel.exe"); // Adjust the path if necessary
+                                                                                           //cppProcess.StartInfo.FileName = "C:\\Users\\OF_7379\\Desktop\\Led Optimization\\denemeonur7\\Winform_Onur\\Winform_Onur\\bin\\Release\\ProcessCpp.exe"; // Adjust the path if necessary
+        //cppProcess.StartInfo.FileName = "C:\\Users\\IREMYILDIZ\\source\\repos\\OptimizeLedModel\\x64\\Release\\OptimizeLedModel.exe";
         cppProcess.StartInfo.CreateNoWindow = false;
         cppProcess.StartInfo.UseShellExecute = false;
         cppProcess.StartInfo.RedirectStandardInput = true;
@@ -210,62 +222,71 @@ public partial class CameraViewModel : ViewModelBase
         cppProcess.StartInfo.RedirectStandardError = true;
 
         Console.WriteLine("Starting CPP Process...");
-        cppProcess.Start();
 
-        // Create a named pipe client
-        using (NamedPipeClientStream pipeClient = new NamedPipeClientStream(".", "MyNamedPipe", PipeDirection.InOut))
+        try
         {
-            Console.WriteLine("Connecting to server...");
-            pipeClient.Connect();
+            cppProcess.Start();
 
-            using (StreamReader reader = new StreamReader(pipeClient))
-            using (StreamWriter writer = new StreamWriter(pipeClient) { AutoFlush = true })
+            // Create a named pipe client
+            using (NamedPipeClientStream pipeClient = new NamedPipeClientStream(".", "MyNamedPipe", PipeDirection.InOut))
             {
-                Console.WriteLine("Connected to server.");
+                Console.WriteLine("Connecting to server...");
+                pipeClient.Connect();
 
-                string message = "0";
+                using (StreamReader reader = new StreamReader(pipeClient))
+                using (StreamWriter writer = new StreamWriter(pipeClient) { AutoFlush = true })
+                {
+                    Console.WriteLine("Connected to server.");
 
-                //Console.WriteLine("Sending: " + message);
-                int intValue = message.Length;
-                byte[] intBytes = BitConverter.GetBytes(intValue);
-                char[] charBytes = System.Text.Encoding.ASCII.GetString(intBytes).ToCharArray();
-                writer.Write(charBytes, 0, 4);
-                writer.Write(message);
+                    string message = "0";
 
-                string path = ResultPath;
-                intValue = path.Length;
-                intBytes = BitConverter.GetBytes(intValue);
-                charBytes = System.Text.Encoding.ASCII.GetString(intBytes).ToCharArray();
-                writer.Write(charBytes, 0, 4);
-                writer.Write(path);
+                    //Console.WriteLine("Sending: " + message);
+                    int intValue = message.Length;
+                    byte[] intBytes = BitConverter.GetBytes(intValue);
+                    char[] charBytes = System.Text.Encoding.ASCII.GetString(intBytes).ToCharArray();
+                    writer.Write(charBytes, 0, 4);
+                    writer.Write(message);
+
+                    string path = Path.Join(ResultPath, ResultFileName).Replace('\\', '/'); //for the consistency with the c++ part
+                    intValue = path.Length;
+                    intBytes = BitConverter.GetBytes(intValue);
+                    charBytes = System.Text.Encoding.ASCII.GetString(intBytes).ToCharArray();
+                    writer.Write(charBytes, 0, 4);
+                    writer.Write(path);
 
 
-                message = "1";
-                intValue = message.Length;
-                intBytes = BitConverter.GetBytes(intValue);
-                charBytes = System.Text.Encoding.ASCII.GetString(intBytes).ToCharArray();
-                writer.Write(charBytes, 0, 4);
-                writer.Write(message);
+                    message = "1";
+                    intValue = message.Length;
+                    intBytes = BitConverter.GetBytes(intValue);
+                    charBytes = System.Text.Encoding.ASCII.GetString(intBytes).ToCharArray();
+                    writer.Write(charBytes, 0, 4);
+                    writer.Write(message);
 
-                path = ModelFile;
-                intValue = path.Length;
-                intBytes = BitConverter.GetBytes(intValue);
-                charBytes = System.Text.Encoding.ASCII.GetString(intBytes).ToCharArray();
-                writer.Write(charBytes, 0, 4);
-                writer.Write(path);
+                    path = Path.GetFullPath(ModelFile).Replace('\\', '/');
+                    intValue = path.Length;
+                    intBytes = BitConverter.GetBytes(intValue);
+                    charBytes = System.Text.Encoding.ASCII.GetString(intBytes).ToCharArray();
+                    writer.Write(charBytes, 0, 4);
+                    writer.Write(path);
 
-                message = "2";
-                intValue = message.Length;
-                intBytes = BitConverter.GetBytes(intValue);
-                charBytes = System.Text.Encoding.ASCII.GetString(intBytes).ToCharArray();
-                writer.Write(charBytes, 0, 4);
-                writer.Write(message);
+                    message = "2";
+                    intValue = message.Length;
+                    intBytes = BitConverter.GetBytes(intValue);
+                    charBytes = System.Text.Encoding.ASCII.GetString(intBytes).ToCharArray();
+                    writer.Write(charBytes, 0, 4);
+                    writer.Write(message);
 
-                string response = reader.ReadLine();
-                //Console.WriteLine("Received: " + response);
+                    string response = reader.ReadLine();
+                    //Console.WriteLine("Received: " + response);
+                }
             }
+            cppProcess.WaitForExit();
         }
-        cppProcess.WaitForExit();
+        catch (Exception e)
+        {
+            Debug.WriteLine(e.Message);
+        }
+
     }
 
     [ObservableProperty]
@@ -282,7 +303,11 @@ public partial class CameraViewModel : ViewModelBase
 
             var file = await filesService.OpenFileAsync();
             if (file is null) ModelFile = "";
-            else ModelFile = file.TryGetLocalPath();
+            else
+            {
+                ModelFile = file.TryGetLocalPath();
+                IsModelEnabled = true;
+            }
         }
         catch (Exception e)
         {

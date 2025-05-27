@@ -32,9 +32,9 @@
                     HorizontalAlignment="Right"
                     VerticalAlignment="Bottom"
                     Spacing="10">
-			<Button Command="{Binding BackCommand}" Content="Back" IsEnabled=""/>
+			<Button Command="{Binding BackCommand}" Content="Back" IsEnabled="{Binding IsBackEnabled}"/>
 			<Button Command="{Binding StartScenerioCommand}" Content="Run Scenerio" IsEnabled="{Binding IsCamSelected}" />
-			<Button Command="{Binding OptimizeCommand}" Content="Run Optimization" />
+			<Button Command="{Binding OptimizeCommand}" Content="Run Optimization" IsEnabled="{Binding IsModelEnabled}" />
 		</StackPanel>
 	</Grid>
 </UserControl>
